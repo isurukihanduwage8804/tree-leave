@@ -24,13 +24,38 @@ st.set_page_config(page_title="ශාක පත්‍ර Quiz", page_icon="🍃"
 
 st.markdown("""
     <style>
-    .block-container { padding-top: 1rem !important; }
+    /* මුළු App එකේම layout එක සකස් කිරීම */
+    .block-container { 
+        padding-top: 2rem !important; 
+    }
     .stApp { background: linear-gradient(to right, #f1f8e9, #ffffff); }
-    h1 { color: #2e7d32; text-align: center; font-size: 26px !important; }
-    .stSubheader { font-size: 18px !important; color: #1b5e20; }
-    div[data-testid="stMarkdownContainer"] > p { font-size: 18px !important; }
-    /* Button එක දකුණට කරන CSS */
-    .stButton > button { width: 100%; border-radius: 10px; background-color: #2e7d32; color: white; }
+    
+    /* මාතෘකාවට පහළින් ඉඩක් ලබා දීම */
+    h1 { 
+        color: #2e7d32; 
+        text-align: center; 
+        font-size: 30px !important; 
+        margin-bottom: 30px !important; 
+        padding-bottom: 10px;
+    }
+    
+    /* ප්‍රශ්න පේළිය මදක් පහළට ගැනීම */
+    .main-quiz-container {
+        margin-top: 20px;
+    }
+    
+    .stSubheader { font-size: 20px !important; color: #1b5e20; }
+    div[data-testid="stMarkdownContainer"] > p { font-size: 19px !important; }
+    
+    /* Button එකේ පෙනුම */
+    .stButton > button { 
+        width: 100%; 
+        border-radius: 10px; 
+        background-color: #2e7d32; 
+        color: white; 
+        height: 3em;
+        font-weight: bold;
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -59,47 +84,4 @@ if st.session_state.current_q >= len(quiz_data):
     st.balloons()
     st.success(f"තරඟය අවසන්! ඔබේ ලකුණු: {st.session_state.score} / 25")
     if st.button("නැවත අරඹන්න"):
-        for key in list(st.session_state.keys()): del st.session_state[key]
-        st.rerun()
-else:
-    img_name, correct_ans = quiz_data[st.session_state.current_q]
-    
-    if st.session_state.options is None:
-        wrong = random.sample([p for p in all_plants if p != correct_ans], 3)
-        opts = wrong + [correct_ans]
-        random.shuffle(opts)
-        st.session_state.options = opts
-
-    st.subheader(f"ප්‍රශ්නය {st.session_state.current_q + 1}:")
-
-    # --- වම සහ දකුණ ලෙස කොටස් දෙකකට බෙදීම ---
-    col1, col2 = st.columns([1, 1])
-
-    with col1:
-        # වම් පැත්තේ පින්තූරය
-        found_image_path = None
-        for ext in [".jpg", ".JPG", ".jpeg", ".png"]:
-            if os.path.exists(f"{img_name}{ext}"):
-                found_image_path = f"{img_name}{ext}"
-                break
-        
-        if found_image_path:
-            st.image(found_image_path, width=280)
-        else:
-            st.error("පින්තූරය සොයාගත නොහැක.")
-
-    with col2:
-        # දකුණු පැත්තේ උත්තර තෝරන කොටස සහ Button එක
-        st.radio("ශාකය තෝරන්න:", st.session_state.options, 
-                 index=None, key="user_choice", on_change=check_ans, 
-                 disabled=st.session_state.answered)
-
-        if st.session_state.answered:
-            if st.session_state.user_choice == correct_ans:
-                st.success("නිවැරදියි! 🎉")
-            else:
-                st.error(f"වැරදියි! පිළිතුර: {correct_ans}")
-            
-            st.button("ඊළඟට ➡️", on_click=next_q)
-
-st.sidebar.markdown(f"### 🏆 ලකුණු: {st.session_state.score} / {st.session_state.current_q + (1 if st.session_state.answered else 0)}")
+        for key in list(st.session_state.keys
