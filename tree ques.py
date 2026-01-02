@@ -16,19 +16,21 @@ quiz_data = [
     ("6", "තේ"), ("7", "කෙසෙල්"), ("8", "පුවක්"), ("9", "කුඹුක්"), ("10", "මහෝගනී"),
     ("11", "තක්කාලි"), ("12", "මිරිස්"), ("13", "බතල"), ("14", "කැරට්"), ("15", "රාබු"),
     ("16", "ගෝවා"), ("17", "කරවිල"), ("18", "පතෝල"), ("19", "වට්ටක්කා"), ("20", "දෙහි"),
-    ("21", "දොඩම්",), ("22", "අන්නාසි"), ("23", "පැපොල්"), ("24", "පේර"), ("25", "ජම්බු")
+    ("21", "දොඩම්"), ("22", "අන්නාසි"), ("23", "පැපොල්"), ("24", "පේර"), ("25", "ජම්බු")
 ]
 
-# --- Page Config & CSS (Scroll ඉවත් කිරීමට) ---
+# --- Page Config & CSS ---
 st.set_page_config(page_title="ශාක පත්‍ර Quiz", page_icon="🍃", layout="centered")
 
 st.markdown("""
     <style>
-    .block-container { padding-top: 1rem !important; padding-bottom: 0rem !important; }
+    .block-container { padding-top: 1rem !important; }
     .stApp { background: linear-gradient(to right, #f1f8e9, #ffffff); }
-    h1 { color: #2e7d32; text-align: center; font-size: 26px !important; margin-bottom: 5px; }
-    .stSubheader { font-size: 18px !important; color: #1b5e20; margin-top: 0px; }
+    h1 { color: #2e7d32; text-align: center; font-size: 26px !important; }
+    .stSubheader { font-size: 18px !important; color: #1b5e20; }
     div[data-testid="stMarkdownContainer"] > p { font-size: 18px !important; }
+    /* Button එක දකුණට කරන CSS */
+    .stButton > button { width: 100%; border-radius: 10px; background-color: #2e7d32; color: white; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -69,32 +71,35 @@ else:
         st.session_state.options = opts
 
     st.subheader(f"ප්‍රශ්නය {st.session_state.current_q + 1}:")
-    
-    # --- පින්තූරය පෙන්වන කොටස (නැවත පරීක්ෂා කරන ලදී) ---
-    found_image_path = None
-    for ext in [".jpg", ".JPG", ".jpeg", ".png"]:
-        test_path = f"{img_name}{ext}"
-        if os.path.exists(test_path):
-            found_image_path = test_path
-            break
-            
-    if found_image_path:
-        st.image(found_image_path, width=300)
-    else:
-        st.error(f"❌ '{img_name}' පින්තූරය සොයාගත නොහැක.")
-        st.info("GitHub එකේ පින්තූරය upload වී ඇත්දැයි බලන්න.")
 
-    # පිළිතුරු තේරීම
-    st.radio("ශාකය තෝරන්න:", st.session_state.options, 
-             index=None, key="user_choice", on_change=check_ans, 
-             disabled=st.session_state.answered)
+    # --- වම සහ දකුණ ලෙස කොටස් දෙකකට බෙදීම ---
+    col1, col2 = st.columns([1, 1])
 
-    if st.session_state.answered:
-        if st.session_state.user_choice == correct_ans:
-            st.success("නිවැරදියි! 🎉")
-        else:
-            st.error(f"වැරදියි! පිළිතුර: {correct_ans}")
+    with col1:
+        # වම් පැත්තේ පින්තූරය
+        found_image_path = None
+        for ext in [".jpg", ".JPG", ".jpeg", ".png"]:
+            if os.path.exists(f"{img_name}{ext}"):
+                found_image_path = f"{img_name}{ext}"
+                break
         
-        st.button("ඊළඟට ➡️", on_click=next_q)
+        if found_image_path:
+            st.image(found_image_path, width=280)
+        else:
+            st.error("පින්තූරය සොයාගත නොහැක.")
 
-st.sidebar.write(f"🏆 ලකුණු: {st.session_state.score} / {st.session_state.current_q + (1 if st.session_state.answered else 0)}")
+    with col2:
+        # දකුණු පැත්තේ උත්තර තෝරන කොටස සහ Button එක
+        st.radio("ශාකය තෝරන්න:", st.session_state.options, 
+                 index=None, key="user_choice", on_change=check_ans, 
+                 disabled=st.session_state.answered)
+
+        if st.session_state.answered:
+            if st.session_state.user_choice == correct_ans:
+                st.success("නිවැරදියි! 🎉")
+            else:
+                st.error(f"වැරදියි! පිළිතුර: {correct_ans}")
+            
+            st.button("ඊළඟට ➡️", on_click=next_q)
+
+st.sidebar.markdown(f"### 🏆 ලකුණු: {st.session_state.score} / {st.session_state.current_q + (1 if st.session_state.answered else 0)}")
