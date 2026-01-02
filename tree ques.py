@@ -24,37 +24,14 @@ st.set_page_config(page_title="ශාක පත්‍ර Quiz", page_icon="🍃"
 
 st.markdown("""
     <style>
-    /* මුළු App එකේම layout එක සකස් කිරීම */
-    .block-container { 
-        padding-top: 2rem !important; 
-    }
+    .block-container { padding-top: 3rem !important; }
     .stApp { background: linear-gradient(to right, #f1f8e9, #ffffff); }
-    
-    /* මාතෘකාවට පහළින් ඉඩක් ලබා දීම */
-    h1 { 
-        color: #2e7d32; 
-        text-align: center; 
-        font-size: 30px !important; 
-        margin-bottom: 30px !important; 
-        padding-bottom: 10px;
-    }
-    
-    /* ප්‍රශ්න පේළිය මදක් පහළට ගැනීම */
-    .main-quiz-container {
-        margin-top: 20px;
-    }
-    
+    h1 { color: #2e7d32; text-align: center; font-size: 32px !important; margin-bottom: 20px !important; }
     .stSubheader { font-size: 20px !important; color: #1b5e20; }
     div[data-testid="stMarkdownContainer"] > p { font-size: 19px !important; }
-    
-    /* Button එකේ පෙනුම */
     .stButton > button { 
-        width: 100%; 
-        border-radius: 10px; 
-        background-color: #2e7d32; 
-        color: white; 
-        height: 3em;
-        font-weight: bold;
+        width: 100%; border-radius: 10px; background-color: #2e7d32; 
+        color: white; height: 3em; font-weight: bold; margin-top: 10px;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -83,5 +60,49 @@ st.title("🍃 ශාක පත්‍ර හඳුනාගනිමු")
 if st.session_state.current_q >= len(quiz_data):
     st.balloons()
     st.success(f"තරඟය අවසන්! ඔබේ ලකුණු: {st.session_state.score} / 25")
+    # මෙන්න මෙතැන තමයි අර Syntax Error එක තිබුණේ:
     if st.button("නැවත අරඹන්න"):
-        for key in list(st.session_state.keys
+        for key in list(st.session_state.keys()): 
+            del st.session_state[key]
+        st.rerun()
+else:
+    img_name, correct_ans = quiz_data[st.session_state.current_q]
+    
+    if st.session_state.options is None:
+        wrong = random.sample([p for p in all_plants if p != correct_ans], 3)
+        opts = wrong + [correct_ans]
+        random.shuffle(opts)
+        st.session_state.options = opts
+
+    st.subheader(f"ප්‍රශ්නය {st.session_state.current_q + 1}:")
+    st.write("") # මාතෘකාවට යටින් හිස් ඉඩක්
+
+    col1, col2 = st.columns([1.2, 1], gap="medium")
+
+    with col1:
+        found_path = None
+        for ext in [".jpg", ".JPG", ".jpeg", ".png"]:
+            if os.path.exists(f"{img_name}{ext}"):
+                found_path = f"{img_name}{ext}"
+                break
+        
+        if found_path:
+            st.image(found_path, width=320)
+        else:
+            st.error("පින්තූරය නැත")
+
+    with col2:
+        st.radio("නිවැරදි ශාකය කුමක්ද?", st.session_state.options, 
+                 index=None, key="user_choice", on_change=check_ans, 
+                 disabled=st.session_state.answered)
+
+        if st.session_state.answered:
+            if st.session_state.user_choice == correct_ans:
+                st.success("නිවැරදියි! 🎉")
+            else:
+                st.error(f"වැරදියි! පිළිතුර: {correct_ans}")
+            
+            st.button("ඊළඟට ➡️", on_click=next_q)
+
+st.sidebar.markdown(f"### 🏆 ලකුණු: {st.session_state.score}")
+st.sidebar.progress((st.session_state.current_q + 1) / 25)
