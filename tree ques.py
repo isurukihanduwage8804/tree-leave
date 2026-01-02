@@ -19,25 +19,32 @@ quiz_data = [
     ("21", "දොඩම්"), ("22", "අන්නාසි"), ("23", "පැපොල්"), ("24", "පේර"), ("25", "ජම්බු")
 ]
 
-# --- Page Config & CSS ---
+# --- Page Config & CSS (Scroll ඉවත් කිරීම සඳහා) ---
 st.set_page_config(page_title="ශාක පත්‍ර Quiz", page_icon="🍃", layout="centered")
 
 st.markdown("""
     <style>
+    /* මුළු පිටුවේම උඩ ඉඩ අඩු කිරීම */
+    .block-container {
+        padding-top: 1rem !important;
+        padding-bottom: 0rem !important;
+    }
     .stApp { background: linear-gradient(to right, #f1f8e9, #ffffff); }
-    h1 { color: #2e7d32; text-align: center; font-family: 'Arial'; }
-    .stSubheader { font-size: 26px !important; color: #1b5e20; font-weight: bold; }
-    div[data-testid="stMarkdownContainer"] > p { font-size: 22px !important; }
+    h1 { color: #2e7d32; text-align: center; font-size: 28px !important; margin-bottom: 0px; }
+    .stSubheader { font-size: 20px !important; color: #1b5e20; margin-top: 0px; }
+    /* පිළිතුරු වල අකුරු */
+    div[data-testid="stMarkdownContainer"] > p { font-size: 18px !important; }
+    /* Radio button එකේ ඉඩ අඩු කිරීම */
+    div[data-testid="stRadio"] > label { padding-bottom: 0px !important; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- Session State Initialize ---
+# --- Session State ---
 if 'score' not in st.session_state: st.session_state.score = 0
 if 'current_q' not in st.session_state: st.session_state.current_q = 0
 if 'options' not in st.session_state: st.session_state.options = None
 if 'answered' not in st.session_state: st.session_state.answered = False
 
-# --- functions ---
 def check_ans():
     if st.session_state.user_choice is not None and not st.session_state.answered:
         st.session_state.answered = True
@@ -52,19 +59,18 @@ def next_q():
     if 'user_choice' in st.session_state:
         st.session_state.user_choice = None
 
-# --- UI ---
+# --- UI Content ---
 st.title("🍃 ශාක පත්‍ර හඳුනාගනිමු")
 
 if st.session_state.current_q >= len(quiz_data):
     st.balloons()
-    st.success(f"තරඟය අවසන්! ඔබේ ලකුණු ප්‍රමාණය: {st.session_state.score} / 25")
+    st.success(f"තරඟය අවසන්! ඔබේ ලකුණු: {st.session_state.score} / 25")
     if st.button("නැවත අරඹන්න"):
         for key in st.session_state.keys(): del st.session_state[key]
         st.rerun()
 else:
     img_name, correct_ans = quiz_data[st.session_state.current_q]
     
-    # Options 4ක් සෑදීම
     if st.session_state.options is None:
         wrong = random.sample([p for p in all_plants if p != correct_ans], 3)
         opts = wrong + [correct_ans]
@@ -73,27 +79,4 @@ else:
 
     st.subheader(f"ප්‍රශ්නය {st.session_state.current_q + 1}:")
     
-    # පින්තූරය
-    found = False
-    for ext in [".jpg", ".JPG", ".jpeg", ".png"]:
-        if os.path.exists(img_name + ext):
-            st.image(img_name + ext, width=450)
-            found = True
-            break
-    if not found: st.error(f"පින්තූරය ({img_name}) හමු නොවීය.")
-
-    # පිළිතුරු තේරීම
-    st.radio("නිවැරදි ශාකය තෝරන්න:", st.session_state.options, 
-             index=None, key="user_choice", on_change=check_ans, 
-             disabled=st.session_state.answered)
-
-    # ප්‍රතිඵලය පෙන්වීම
-    if st.session_state.answered:
-        if st.session_state.user_choice == correct_ans:
-            st.success("නිවැරදියි! 🎉")
-        else:
-            st.error(f"වැරදියි! නිවැරදි පිළිතුර: {correct_ans} ❌")
-        
-        st.button("ඊළඟ ප්‍රශ්නය ➡️", on_click=next_q)
-
-st.sidebar.markdown(f"### 🏆 ලකුණු: {st.session_state.score} / {st.session_state.current_q + (1 if st.session_state.answered else 0)}")
+    # පින්තූරය (
