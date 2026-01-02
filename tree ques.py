@@ -23,27 +23,30 @@ quiz_data = [
 st.set_page_config(page_title="ශාක පත්‍ර Quiz", page_icon="🍃")
 st.title("🍃 ශාක පත්‍ර හඳුනාගනිමු")
 
-# Session State එක මගින් දත්ත ස්ථාවරව තබා ගැනීම
+# Session State පාලනය
 if 'score' not in st.session_state:
     st.session_state.score = 0
 if 'current_q' not in st.session_state:
     st.session_state.current_q = 0
 if 'options' not in st.session_state:
     st.session_state.options = None
+if 'answered' not in st.session_state:
+    st.session_state.answered = False
 
 # Game එක අවසන් නම්
 if st.session_state.current_q >= len(quiz_data):
     st.balloons()
-    st.success(f"තරඟය අවසන්! ඔබේ මුළු ලකුණු ප්‍රමාණය: {st.session_state.score} / 25")
+    st.success(f"तरඟය අවසන්! ඔබේ මුළු ලකුණු ප්‍රමාණය: {st.session_state.score} / 25")
     if st.button("නැවත අරඹන්න"):
         st.session_state.score = 0
         st.session_state.current_q = 0
         st.session_state.options = None
+        st.session_state.answered = False
         st.rerun()
 else:
     img_name, correct_ans = quiz_data[st.session_state.current_q]
     
-    # වත්මන් ප්‍රශ්නය සඳහා පිළිතුරු ලැයිස්තුව සකස් කිරීම (එක් වරක් පමණක්)
+    # පිළිතුරු සකස් කිරීම
     if st.session_state.options is None:
         wrong_choices = random.sample([p for p in all_plants if p != correct_ans], 2)
         current_options = wrong_choices + [correct_ans]
@@ -64,22 +67,33 @@ else:
     if not found_image:
         st.error(f"❌ '{img_name}' පින්තූරය සොයාගත නොහැක.")
 
-    # රේඩියෝ බොත්තම් හරහා පිළිතුරු ලබා ගැනීම
-    user_choice = st.radio("මෙම පත්‍රය අයිති කුමන ශාකයටද?", st.session_state.options, index=None)
+    # පිළිතුර තේරීම
+    user_choice = st.radio("මෙම පත්‍රය අයිති කුමන ශාකයටද?", st.session_state.options, index=None, disabled=st.session_state.answered)
 
-    if st.button("ඊළඟ ප්‍රශ්නය ➡️"):
-        if user_choice is None:
-            st.warning("කරුණාකර පිළිතුරක් තෝරන්න.")
-        else:
-            if user_choice == correct_ans:
-                st.session_state.score += 1
-                st.toast("නිවැරදියි! 🎉")
+    # බොත්තම් පාලනය
+    if not st.session_state.answered:
+        if st.button("පිළිතුර පරීක්ෂා කරන්න ✅"):
+            if user_choice is None:
+                st.warning("කරුණාකර පිළිතුරක් තෝරන්න.")
             else:
-                st.toast(f"වැරදියි! නිවැරදි පිළිතුර: {correct_ans} ❌")
+                st.session_state.answered = True
+                if user_choice == correct_ans:
+                    st.session_state.score += 1
+                    st.success("නිවැරදියි! 🎉")
+                else:
+                    st.error(f"වැරදියි! නිවැරදි පිළිතුර: {correct_ans} ❌")
+                st.rerun() # ප්‍රතිඵලය පෙන්වීමට rerun කරයි
+    else:
+        # පිළිතුර දුන් පසු පෙන්වන පණිවිඩය (පිටුව rerun වුවත් මෙය පවතී)
+        if user_choice == correct_ans:
+            st.success(f"නිවැරදියි! 🎉 (පිළිතුර: {correct_ans})")
+        else:
+            st.error(f"වැරදියි! නිවැරදි පිළිතුර: {correct_ans} ❌")
             
-            # දත්ත Reset කර ඊළඟ ප්‍රශ්නයට යාම
+        if st.button("ඊළඟ ප්‍රශ්නය ➡️"):
             st.session_state.current_q += 1
             st.session_state.options = None
+            st.session_state.answered = False
             st.rerun()
 
-st.sidebar.write(f"ලකුණු: {st.session_state.score} / {st.session_state.current_q}")
+st.sidebar.write(f"ලකුණු: {st.session_state.score} / {st.session_state.current_q if not st.session_state.answered else st.session_state.current_q + 1}")
